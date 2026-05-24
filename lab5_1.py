@@ -140,3 +140,163 @@ def exercise2_list_directory():
         
     except subprocess.SubprocessError as e:
         print(f"Ошибка при выполнении команды: {e}")
+
+# Упражнение 3
+
+def exercise3_http_request():
+    """Отправка HTTP-запроса и анализ ответа"""
+    print("Упражнение 3.1: HTTP-запросы с использованием requests")
+    
+    url = input("Введите URL для проверки (например, https://www.google.com): ").strip()
+    if not url:
+        url = "https://www.google.com"
+    
+    try:
+        print(f"\nОтправка запроса к {url}...")
+        start_time = time.time()
+        response = requests.get(url, timeout=10)
+        end_time = time.time()
+        
+        print("\nАнализ ответа:")
+        print(f"  • Статус-код: {response.status_code} - {response.reason}")
+        print(f"  • Тип содержимого: {response.headers.get('Content-Type', 'Не указан')}")
+        print(f"  • Размер контента: {response.headers.get('Content-Length', len(response.content))} байт")
+        print(f"  • Время ответа: {(end_time - start_time)*1000:.2f} мс")
+        print(f"  • Сервер: {response.headers.get('Server', 'Не указан')}")
+        
+        if response.status_code == 200:
+            print(f"Сайт доступен")
+        elif 400 <= response.status_code < 500:
+            print(f"Клиентская ошибка: {response.status_code}")
+        elif 500 <= response.status_code < 600:
+            print(f"Серверная ошибка: {response.status_code}")
+            
+    except requests.exceptions.ConnectionError:
+        print(f"Не удается подключиться к {url}. Проверьте подключение к интернету")
+    except requests.exceptions.Timeout:
+        print(f"Таймаут при подключении к {url}")
+    except requests.exceptions.RequestException as e:
+        print(f"Ошибка запроса: {e}")
+
+def exercise3_socket():
+    """Установка соединения через сокеты"""
+    print("Упражнение 3.2: Работа с сокетами")
+    
+    host = input("Введите хост (например, google.com): ").strip()
+    if not host:
+        host = "google.com"
+    
+    port = 80
+    
+    try:
+        print(f"\nПодключение к {host}:{port}...")
+
+        request = f"GET / HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\nUser-Agent: Python-Socket\r\n\r\n"
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(10)
+            s.connect((host, port))
+            print(f"Подключение установлено")
+
+            print("Отправка HTTP-запроса...")
+            s.sendall(request.encode())
+
+            print("Получение ответа...")
+            response = b""
+            while True:
+                try:
+                    part = s.recv(4096)
+                    if not part:
+                        break
+                    response += part
+                except socket.timeout:
+                    break
+
+            response_str = response.decode('utf-8', errors='ignore')
+            lines = response_str.split('\r\n')
+            
+            if lines:
+                status_line = lines[0]
+                print(f"\nСтатус-код: {status_line}")
+
+                headers = {}
+                for line in lines[1:]:
+                    if ': ' in line:
+                        key, value = line.split(': ', 1)
+                        headers[key] = value
+                    elif line == '':
+                        break
+                
+                print(f"  • Сервер: {headers.get('Server', 'Не указан')}")
+                print(f"  • Content-Type: {headers.get('Content-Type', 'Не указан')}")
+                print(f"  • Content-Length: {headers.get('Content-Length', 'Не указан')} байт")
+                
+    except socket.gaierror:
+        print(f"Не удается разрешить имя хоста '{host}'")
+    except socket.timeout:
+        print(f"Таймаут подключения к {host}")
+    except ConnectionRefusedError:
+        print(f"Соединение отклонено. Убедитесь, что порт {port} открыт")
+    except Exception as e:
+        print(f"Ошибка: {e}")
+
+# Упражнение 4
+
+def exercise4_system_info():
+    """Отображение информации о системе"""
+    print("Упражнение 4.1: Системная информация")
+    
+    print("\nИнформация о системе:")
+    print(f"  • Операционная система: {platform.system()} {platform.release()}")
+    print(f"  • Версия ОС: {platform.version()}")
+    print(f"  • Архитектура: {platform.machine()}")
+    print(f"  • Процессор: {platform.processor() or 'Не определён'}")
+    print(f"  • Имя компьютера: {platform.node()}")
+    print(f"\nИнформация о Python:")
+    print(f"  • Версия: {platform.python_version()}")
+    print(f"  • Компилятор: {platform.python_compiler()}")
+    print(f"  • Реализация: {platform.python_implementation()}")
+    
+    if psutil:
+        print(f"\nИнформация о диске:")
+        disk_usage = psutil.disk_usage('/')
+        print(f"  • Всего: {disk_usage.total / (1024**3):.2f} GB")
+        print(f"  • Использовано: {disk_usage.used / (1024**3):.2f} GB")
+        print(f"  • Свободно: {disk_usage.free / (1024**3):.2f} GB")
+        print(f"  • Использовано (%): {disk_usage.percent}%")
+        
+        print(f"\nИнформация о памяти:")
+        memory = psutil.virtual_memory()
+        print(f"  • Всего RAM: {memory.total / (1024**3):.2f} GB")
+        print(f"  • Использовано: {memory.used / (1024**3):.2f} GB")
+        print(f"  • Использовано (%): {memory.percent}%")
+    else:
+        print(f"\nУстановите psutil для подробной информации о системе")
+
+def exercise4_working_directory():
+    """Работа с рабочим каталогом и переменными окружения"""
+    print("Упражнение 4.2: Рабочий каталог и переменные окружения")
+    
+    print(f"\nТекущий рабочий каталог: {os.getcwd()}")
+
+    test_dir = os.path.join(os.getcwd(), "test_system_dir")
+    try:
+        os.makedirs(test_dir, exist_ok=True)
+        os.chdir(test_dir)
+        print(f"Изменен каталог на: {os.getcwd()}")
+
+        os.chdir('..')
+        os.rmdir(test_dir)
+        print(f"Возврат в: {os.getcwd()}")
+    except Exception as e:
+        print(f"Ошибка при смене каталога: {e}")
+    
+    print(f"\nПеременные окружения (первые 10):")
+    for i, (key, value) in enumerate(list(os.environ.items())[:10]):
+        print(f"  • {key} = {value[:50] if len(value) > 50 else value}")
+    
+    important_vars = ['PATH', 'HOME', 'USER', 'PYTHONPATH', 'TEMP']
+    print(f"\nВажные переменные окружения:")
+    for var in important_vars:
+        value = os.environ.get(var, 'Не установлена')
+        print(f"  • {var} = {value[:60] if len(value) > 60 else value}")

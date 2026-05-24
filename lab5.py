@@ -99,7 +99,7 @@ def exercise2_ping():
             print(f"Хост {host} недоступен")
             
     except subprocess.SubprocessError as e:
-        print(f"❌ Ошибка при выполнении ping: {e}")
+        print(f"Ошибка при выполнении ping: {e}")
 
 def exercise2_list_directory():
     """Выполнение команды ls/dir и подсчет файлов"""
@@ -141,3 +141,101 @@ def exercise2_list_directory():
     except subprocess.SubprocessError as e:
         print(f"Ошибка при выполнении команды: {e}")
 
+# Упражнение 3
+
+def exercise3_http_request():
+    """Отправка HTTP-запроса и анализ ответа"""
+    print("Упражнение 3.1: HTTP-запросы с использованием requests")
+    
+    url = input("Введите URL для проверки (например, https://www.google.com): ").strip()
+    if not url:
+        url = "https://www.google.com"
+    
+    try:
+        print(f"\nОтправка запроса к {url}...")
+        start_time = time.time()
+        response = requests.get(url, timeout=10)
+        end_time = time.time()
+        
+        print("\nАнализ ответа:")
+        print(f"  • Статус-код: {response.status_code} - {response.reason}")
+        print(f"  • Тип содержимого: {response.headers.get('Content-Type', 'Не указан')}")
+        print(f"  • Размер контента: {response.headers.get('Content-Length', len(response.content))} байт")
+        print(f"  • Время ответа: {(end_time - start_time)*1000:.2f} мс")
+        print(f"  • Сервер: {response.headers.get('Server', 'Не указан')}")
+        
+        if response.status_code == 200:
+            print(f"Сайт доступен")
+        elif 400 <= response.status_code < 500:
+            print(f"Клиентская ошибка: {response.status_code}")
+        elif 500 <= response.status_code < 600:
+            print(f"Серверная ошибка: {response.status_code}")
+            
+    except requests.exceptions.ConnectionError:
+        print(f"Не удается подключиться к {url}. Проверьте подключение к интернету")
+    except requests.exceptions.Timeout:
+        print(f"Таймаут при подключении к {url}")
+    except requests.exceptions.RequestException as e:
+        print(f"Ошибка запроса: {e}")
+
+def exercise3_socket():
+    """Установка соединения через сокеты"""
+    print("Упражнение 3.2: Работа с сокетами")
+    
+    host = input("Введите хост (например, google.com): ").strip()
+    if not host:
+        host = "google.com"
+    
+    port = 80
+    
+    try:
+        print(f"\nПодключение к {host}:{port}...")
+
+        request = f"GET / HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\nUser-Agent: Python-Socket\r\n\r\n"
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(10)
+            s.connect((host, port))
+            print(f"Подключение установлено")
+
+            print("Отправка HTTP-запроса...")
+            s.sendall(request.encode())
+
+            print("Получение ответа...")
+            response = b""
+            while True:
+                try:
+                    part = s.recv(4096)
+                    if not part:
+                        break
+                    response += part
+                except socket.timeout:
+                    break
+
+            response_str = response.decode('utf-8', errors='ignore')
+            lines = response_str.split('\r\n')
+            
+            if lines:
+                status_line = lines[0]
+                print(f"\n📊 Статус-код: {status_line}")
+                
+                headers = {}
+                for line in lines[1:]:
+                    if ': ' in line:
+                        key, value = line.split(': ', 1)
+                        headers[key] = value
+                    elif line == '':
+                        break
+                
+                print(f"  • Сервер: {headers.get('Server', 'Не указан')}")
+                print(f"  • Content-Type: {headers.get('Content-Type', 'Не указан')}")
+                print(f"  • Content-Length: {headers.get('Content-Length', 'Не указан')} байт")
+                
+    except socket.gaierror:
+        print(f"Не удается разрешить имя хоста '{host}'")
+    except socket.timeout:
+        print(f"Таймаут подключения к {host}")
+    except ConnectionRefusedError:
+        print(f"Соединение отклонено. Убедитесь, что порт {port} открыт")
+    except Exception as e:
+        print(f"Ошибка: {e}")

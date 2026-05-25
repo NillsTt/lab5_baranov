@@ -303,6 +303,41 @@ def exercise4_working_directory():
 
 # Упражнение 5
 
+def long_task(name, duration=2):
+    """Функция, симулирующая длительную задачу"""
+    print(f"Задача '{name}' началась в {datetime.now().strftime('%H:%M:%S')}")
+    time.sleep(duration)
+    print(f"Задача '{name}' завершилась в {datetime.now().strftime('%H:%M:%S')}")
+    return f"Результат задачи {name}"
+
+def exercise5_multithreading():
+    """Многопоточное выполнение задач"""
+    print("Упражнение 5.1: Многопоточность")
+
+    num_threads = int(input("Введите количество потоков (по умолчанию 5): ") or "5")
+    
+    print(f"\nЗапуск {num_threads} потоков...")
+    start_time = time.time()
+    
+    threads = []
+    results = [None] * num_threads
+    
+    def task_wrapper(index, name):
+        results[index] = long_task(name)
+    
+    for i in range(num_threads):
+        t = threading.Thread(target=task_wrapper, args=(i, f"Поток-{i+1}"))
+        threads.append(t)
+        t.start()
+    
+    for t in threads:
+        t.join()
+    
+    end_time = time.time()
+    
+    print(f"\nВсе задачи выполнены за {(end_time - start_time):.2f} секунд")
+    print(f"Полученные результаты: {results}")
+
 async def async_long_task(name, duration=2):
     """Асинхронная функция, симулирующая длительную задачу"""
     print(f"Асинхронная задача '{name}' началась в {datetime.now().strftime('%H:%M:%S')}")

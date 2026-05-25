@@ -300,3 +300,81 @@ def exercise4_working_directory():
     for var in important_vars:
         value = os.environ.get(var, 'Не установлена')
         print(f"  • {var} = {value[:60] if len(value) > 60 else value}")
+
+# Упражнение 5
+
+async def async_long_task(name, duration=2):
+    """Асинхронная функция, симулирующая длительную задачу"""
+    print(f"Асинхронная задача '{name}' началась в {datetime.now().strftime('%H:%M:%S')}")
+    await asyncio.sleep(duration)
+    print(f"Асинхронная задача '{name}' завершилась в {datetime.now().strftime('%H:%M:%S')}")
+    return f"Результат асинхронной задачи {name}"
+
+async def exercise5_async():
+    """Асинхронное выполнение задач"""
+    print("Упражнение 5.2: Асинхронное программирование")
+    
+    num_tasks = int(input("Введите количество асинхронных задач (по умолчанию 5): ") or "5")
+    
+    print(f"\nЗапуск {num_tasks} асинхронных задач...")
+    start_time = time.time()
+    
+    tasks = [async_long_task(f"Задача-{i+1}") for i in range(num_tasks)]
+    
+    results = await asyncio.gather(*tasks)
+    
+    end_time = time.time()
+    
+    print(f"\nВсе асинхронные задачи выполнены за {(end_time - start_time):.2f} секунд")
+    print(f"Полученные результаты: {results}")
+
+# main()
+
+def main():
+    """Главная функция для запуска всех упражнений"""
+    
+    exercises = {
+        '1': ('Работа с файловой системой', exercise1_create_directory, exercise1_list_files),
+        '2': ('Работа с процессами', exercise2_ping, exercise2_list_directory),
+        '3': ('Работа с сетями', exercise3_http_request, exercise3_socket),
+        '4': ('Работа с системной информацией', exercise4_system_info, exercise4_working_directory),
+        '5': ('Многопоточность и асинхронность', exercise5_multithreading, None),
+        '6': ('Асинхронное программирование', None, None)
+    }
+    
+    while True:
+        print("Упражнения:")
+        print("1. Упражнение 1 - Работа с файловой системой")
+        print("2. Упражнение 2 - Работа с процессами")
+        print("3. Упражнение 3 - Работа с сетями")
+        print("4. Упражнение 4 - Работа с системной информацией")
+        print("5. Упражнение 5.1 - Многопоточность")
+        print("6. Упражнение 5.2 - Асинхронность")
+        print("0. Выход")
+        
+        choice = input("\nВыберите упражнение (0-6): ").strip()
+        
+        if choice == '0':
+            print("\nДо свидания")
+            break
+        elif choice == '1':
+            exercise1_create_directory()
+            exercise1_list_files()
+        elif choice == '2':
+            exercise2_ping()
+            exercise2_list_directory()
+        elif choice == '3':
+            exercise3_http_request()
+            exercise3_socket()
+        elif choice == '4':
+            exercise4_system_info()
+            exercise4_working_directory()
+        elif choice == '5':
+            exercise5_multithreading()
+        elif choice == '6':
+            asyncio.run(exercise5_async())
+        else:
+            print("Неверный выбор. Попробуйте снова.")
+
+if __name__ == "__main__":
+    main()

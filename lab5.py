@@ -217,7 +217,7 @@ def exercise3_socket():
             
             if lines:
                 status_line = lines[0]
-                print(f"\n📊 Статус-код: {status_line}")
+                print(f"\nСтатус-код: {status_line}")
                 
                 headers = {}
                 for line in lines[1:]:
@@ -239,3 +239,142 @@ def exercise3_socket():
         print(f"Соединение отклонено. Убедитесь, что порт {port} открыт")
     except Exception as e:
         print(f"Ошибка: {e}")
+
+# Упражнение 4
+
+def exercise4_system_info():
+    """Отображение информации о системе"""
+    print("Упражнение 4.1: Системная информация")
+    
+    print("\nИнформация о системе:")
+    print(f"  • Операционная система: {platform.system()} {platform.release()}")
+    print(f"  • Версия ОС: {platform.version()}")
+    print(f"  • Архитектура: {platform.machine()}")
+    print(f"  • Процессор: {platform.processor() or 'Не определён'}")
+    print(f"  • Имя компьютера: {platform.node()}")
+    print(f"\nИнформация о Python:")
+    print(f"  • Версия: {platform.python_version()}")
+    print(f"  • Компилятор: {platform.python_compiler()}")
+    print(f"  • Реализация: {platform.python_implementation()}")
+    
+    if psutil:
+        print(f"\nИнформация о диске:")
+        disk_usage = psutil.disk_usage('/')
+        print(f"  • Всего: {disk_usage.total / (1024**3):.2f} GB")
+        print(f"  • Использовано: {disk_usage.used / (1024**3):.2f} GB")
+        print(f"  • Свободно: {disk_usage.free / (1024**3):.2f} GB")
+        print(f"  • Использовано (%): {disk_usage.percent}%")
+        
+        print(f"\nИнформация о памяти:")
+        memory = psutil.virtual_memory()
+        print(f"  • Всего RAM: {memory.total / (1024**3):.2f} GB")
+        print(f"  • Использовано: {memory.used / (1024**3):.2f} GB")
+        print(f"  • Использовано (%): {memory.percent}%")
+    else:
+        print(f"\nУстановите psutil для подробной информации о системе")
+
+def exercise4_working_directory():
+    """Работа с рабочим каталогом и переменными окружения"""
+    print("Упражнение 4.2: Рабочий каталог и переменные окружения")
+    
+    print(f"\nТекущий рабочий каталог: {os.getcwd()}")
+
+    test_dir = os.path.join(os.getcwd(), "test_system_dir")
+    try:
+        os.makedirs(test_dir, exist_ok=True)
+        os.chdir(test_dir)
+        print(f"Изменен каталог на: {os.getcwd()}")
+
+        os.chdir('..')
+        os.rmdir(test_dir)
+        print(f"Возврат в: {os.getcwd()}")
+    except Exception as e:
+        print(f"Ошибка при смене каталога: {e}")
+    
+    print(f"\nПеременные окружения (первые 10):")
+    for i, (key, value) in enumerate(list(os.environ.items())[:10]):
+        print(f"  • {key} = {value[:50] if len(value) > 50 else value}")
+    
+    important_vars = ['PATH', 'HOME', 'USER', 'PYTHONPATH', 'TEMP']
+    print(f"\nВажные переменные окружения:")
+    for var in important_vars:
+        value = os.environ.get(var, 'Не установлена')
+        print(f"  • {var} = {value[:60] if len(value) > 60 else value}")
+
+# Упражнение 5
+
+async def async_long_task(name, duration=2):
+    """Асинхронная функция, симулирующая длительную задачу"""
+    print(f"Асинхронная задача '{name}' началась в {datetime.now().strftime('%H:%M:%S')}")
+    await asyncio.sleep(duration)
+    print(f"Асинхронная задача '{name}' завершилась в {datetime.now().strftime('%H:%M:%S')}")
+    return f"Результат асинхронной задачи {name}"
+
+async def exercise5_async():
+    """Асинхронное выполнение задач"""
+    print("Упражнение 5.2: Асинхронное программирование")
+    
+    num_tasks = int(input("Введите количество асинхронных задач (по умолчанию 5): ") or "5")
+    
+    print(f"\nЗапуск {num_tasks} асинхронных задач...")
+    start_time = time.time()
+    
+    tasks = [async_long_task(f"Задача-{i+1}") for i in range(num_tasks)]
+    
+    results = await asyncio.gather(*tasks)
+    
+    end_time = time.time()
+    
+    print(f"\nВсе асинхронные задачи выполнены за {(end_time - start_time):.2f} секунд")
+    print(f"Полученные результаты: {results}")
+
+# main()
+
+def main():
+    """Главная функция для запуска всех упражнений"""
+    
+    exercises = {
+        '1': ('Работа с файловой системой', exercise1_create_directory, exercise1_list_files),
+        '2': ('Работа с процессами', exercise2_ping, exercise2_list_directory),
+        '3': ('Работа с сетями', exercise3_http_request, exercise3_socket),
+        '4': ('Работа с системной информацией', exercise4_system_info, exercise4_working_directory),
+        '5': ('Многопоточность и асинхронность', exercise5_multithreading, None),
+        '6': ('Асинхронное программирование', None, None)
+    }
+    
+    while True:
+        print("Упражнения:")
+        print("1. Упражнение 1 - Работа с файловой системой")
+        print("2. Упражнение 2 - Работа с процессами")
+        print("3. Упражнение 3 - Работа с сетями")
+        print("4. Упражнение 4 - Работа с системной информацией")
+        print("5. Упражнение 5.1 - Многопоточность")
+        print("6. Упражнение 5.2 - Асинхронность")
+        print("0. Выход")
+        
+        choice = input("\nВыберите упражнение (0-6): ").strip()
+        
+        if choice == '0':
+            print("\nДо свидания")
+            break
+        elif choice == '1':
+            exercise1_create_directory()
+            exercise1_list_files()
+        elif choice == '2':
+            exercise2_ping()
+            exercise2_list_directory()
+        elif choice == '3':
+            exercise3_http_request()
+            exercise3_socket()
+        elif choice == '4':
+            exercise4_system_info()
+            exercise4_working_directory()
+        elif choice == '5':
+            exercise5_multithreading()
+        elif choice == '6':
+            asyncio.run(exercise5_async())
+        else:
+            print("Неверный выбор. Попробуйте снова.")
+
+if __name__ == "__main__":
+    main()

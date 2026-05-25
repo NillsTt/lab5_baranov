@@ -9,13 +9,18 @@ import os
 import sys
 import platform
 import subprocess
-import requests
 import socket
 import time
 import threading
 import asyncio
 from pathlib import Path
 from datetime import datetime
+
+try:
+    import requests
+except ImportError:
+    print("Установите requests: pip install requests")
+    requests = None
 
 try:
     import psutil
@@ -252,6 +257,7 @@ def exercise4_system_info():
     print(f"  • Архитектура: {platform.machine()}")
     print(f"  • Процессор: {platform.processor() or 'Не определён'}")
     print(f"  • Имя компьютера: {platform.node()}")
+    
     print(f"\nИнформация о Python:")
     print(f"  • Версия: {platform.python_version()}")
     print(f"  • Компилятор: {platform.python_compiler()}")
@@ -259,47 +265,72 @@ def exercise4_system_info():
     
     if psutil:
         print(f"\nИнформация о диске:")
-        disk_usage = psutil.disk_usage('/')
-        print(f"  • Всего: {disk_usage.total / (1024**3):.2f} GB")
-        print(f"  • Использовано: {disk_usage.used / (1024**3):.2f} GB")
-        print(f"  • Свободно: {disk_usage.free / (1024**3):.2f} GB")
-        print(f"  • Использовано (%): {disk_usage.percent}%")
+        
+        if platform.system().lower() == "windows":
+            current_drive = os.path.splitdrive(os.getcwd())[0] + '\\'
+            disk_path = current_drive
+        else:
+            disk_path = '/'
+        
+        try:
+            disk_usage = psutil.disk_usage(disk_path)
+            print(f"  • Диск: {disk_path}")
+            print(f"  • Всего: {disk_usage.total / (1024**3):.2f} GB")
+            print(f"  • Использовано: {disk_usage.used / (1024**3):.2f} GB")
+            print(f"  • Свободно: {disk_usage.free / (1024**3):.2f} GB")
+            print(f"  • Использовано (%): {disk_usage.percent}%")
+        except Exception as e:
+            print(f"  • Ошибка получения информации о диске: {e}")
         
         print(f"\nИнформация о памяти:")
-        memory = psutil.virtual_memory()
-        print(f"  • Всего RAM: {memory.total / (1024**3):.2f} GB")
-        print(f"  • Использовано: {memory.used / (1024**3):.2f} GB")
-        print(f"  • Использовано (%): {memory.percent}%")
+        try:
+            memory = psutil.virtual_memory()
+            print(f"  • Всего RAM: {memory.total / (1024**3):.2f} GB")
+            print(f"  • Использовано: {memory.used / (1024**3):.2f} GB")
+            print(f"  • Свободно: {memory.available / (1024**3):.2f} GB")
+            print(f"  • Использовано (%): {memory.percent}%")
+        except Exception as e:
+            print(f"  • Ошибка получения информации о памяти: {e}")
     else:
         print(f"\nУстановите psutil для подробной информации о системе")
+        print(f"   Выполните команду: pip install psutil")
 
 def exercise4_working_directory():
     """Работа с рабочим каталогом и переменными окружения"""
     print("Упражнение 4.2: Рабочий каталог и переменные окружения")
     
     print(f"\nТекущий рабочий каталог: {os.getcwd()}")
-
+    
     test_dir = os.path.join(os.getcwd(), "test_system_dir")
     try:
         os.makedirs(test_dir, exist_ok=True)
+        print(f"Создана тестовая директория: {test_dir}")
+        
         os.chdir(test_dir)
         print(f"Изменен каталог на: {os.getcwd()}")
 
         os.chdir('..')
-        os.rmdir(test_dir)
         print(f"Возврат в: {os.getcwd()}")
+        
+        os.rmdir(test_dir)
+        print(f"Удалена тестовая директория")
     except Exception as e:
-        print(f"Ошибка при смене каталога: {e}")
+        print(f"Ошибка при работе с каталогом: {e}")
     
     print(f"\nПеременные окружения (первые 10):")
     for i, (key, value) in enumerate(list(os.environ.items())[:10]):
-        print(f"  • {key} = {value[:50] if len(value) > 50 else value}")
+        value_str = str(value)
+        if len(value_str) > 60:
+            value_str = value_str[:57] + "..."
+        print(f"  • {key} = {value_str}")
     
-    important_vars = ['PATH', 'HOME', 'USER', 'PYTHONPATH', 'TEMP']
+    important_vars = ['PATH', 'HOME', 'USERNAME', 'USER', 'PYTHONPATH', 'TEMP', 'TMP']
     print(f"\nВажные переменные окружения:")
     for var in important_vars:
         value = os.environ.get(var, 'Не установлена')
-        print(f"  • {var} = {value[:60] if len(value) > 60 else value}")
+        if len(value) > 60:
+            value = value[:57] + "..."
+        print(f"  • {var} = {value}")
 
 # Упражнение 5
 
